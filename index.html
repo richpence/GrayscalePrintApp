@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Even Stepped Grayscale Print Calculator</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f3f3e5;
+            color: #3c5a2a;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #faf0d5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto 20px;
+        }
+
+        .container h1 {
+            font-size: 1.8em;
+            text-align: center;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .container h2 {
+            font-size: 1.2em;
+            text-align: center;
+            color: #2d4a1d;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .container label {
+            display: block;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .container input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            display: block;
+        }
+
+        button {
+            background-color: #3c5a2a;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2d4a1d;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #3c5a2a;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+
+        th {
+            background-color: #2d4a1d;
+            color: white;
+        }
+
+        td {
+            background-color: #faf0d5;
+        }
+
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            table, th, td {
+                font-size: 0.9em;
+            }
+        }
+
+        .grayscale-box-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .grayscale-box {
+            width: 100%;
+            aspect-ratio: 8 / 10; /* Maintain 8:10 aspect ratio */
+            background-color: #faf0d5;
+            overflow: hidden;
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: flex-start; /* Left-aligns the checkbox */
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .toggle-container label {
+            font-size: 1em;
+            font-weight: bold;
+            color: #2d4a1d;
+            margin-right: 10px; /* Space between label and checkbox */
+        }
+
+        /* Simple toggle switch style */
+        .toggle-container input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 50px;
+            height: 30px;
+            border-radius: 50px;
+            background-color: #ccc;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-container input[type="checkbox"]:checked {
+            background-color: #4CAF50;
+        }
+
+        .toggle-container input[type="checkbox"]:before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-container input[type="checkbox"]:checked:before {
+            transform: translateX(20px);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Even Stepped Grayscale Print Calculator</h1>
+        <h2>by Richard Pence</h2>
+
+        <label for="firstOffWhite">Time to First Off White (Seconds)</label>
+        <input type="number" id="firstOffWhite" placeholder="Enter value">
+
+        <label for="shortestBlack">Shortest Time to Pure Black (Seconds)</label>
+        <input type="number" id="shortestBlack" placeholder="Enter value">
+
+        <label for="totalSteps">Total Number of Steps (Including Pure Black and Pure White)</label>
+        <input type="number" id="totalSteps" placeholder="Enter value">
+
+        <div class="toggle-container">
+            <label for="wholeSecondsToggle">Whole Seconds</label>
+            <input type="checkbox" id="wholeSecondsToggle">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result"></div>
+
+        <!-- Grayscale Box Container -->
+        <div class="grayscale-box-container" id="grayscaleBoxContainer">
+            <div class="grayscale-box" id="grayscaleBox"></div>
+        </div>
+
+    </div>
+
+    <script>
+        function calculate() {
+            const firstOffWhite = parseFloat(document.getElementById('firstOffWhite').value);
+            const shortestBlack = parseFloat(document.getElementById('shortestBlack').value);
+            const totalSteps = parseInt(document.getElementById('totalSteps').value);
+            const wholeSecondsToggle = document.getElementById('wholeSecondsToggle').checked;
+
+            if (isNaN(firstOffWhite) || isNaN(shortestBlack) || isNaN(totalSteps)) {
+                alert('Please enter valid numbers for all inputs.');
+                return;
+            }
+
+            const dynamicRange = Math.log2(shortestBlack / firstOffWhite).toFixed(2);
+            const multiplier = Math.pow(shortestBlack / firstOffWhite, 1 / (totalSteps - 2)).toFixed(6);
+
+            const steps = [0, firstOffWhite];
+            for (let i = 2; i < totalSteps; i++) {
+                steps.push(steps[i - 1] * multiplier);
+            }
+
+            const exposureTimes = steps.map(time => wholeSecondsToggle ? Math.round(time) : time.toFixed(1));
+
+            let resultHtml = `
+                <h3>Exposure Time Per Step</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Exposure Time (Seconds)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (let i = 0; i < totalSteps; i++) {
+                resultHtml += `<tr><td>${i === 0 ? 'Step 1 (Pure White)' : i === totalSteps - 1 ? `Step ${i + 1} (Pure Black)` : 'Step ' + (i + 1)}</td><td>${exposureTimes[i]}</td></tr>`;
+            }
+
+            resultHtml += '</tbody></table>';
+
+            resultHtml += `<h3>Enlarger Timer Setting</h3><table><thead><tr><th>Step</th><th>Exposure Time (Seconds)</th></tr></thead><tbody>`;
+            for (let i = 0; i < totalSteps; i++) {
+                const enlargerTime = i === 0 ? 0 : (steps[i] - steps[i - 1]).toFixed(1);
+                resultHtml += `<tr><td>${i === 0 ? 'Step 1 (Pure White)' : i === totalSteps - 1 ? `Step ${i + 1} (Pure Black)` : 'Step ' + (i + 1)}</td><td>${wholeSecondsToggle ? Math.round(enlargerTime) : enlargerTime}</td></tr>`;
+            }
+            resultHtml += '</tbody></table>';
+
+            resultHtml += `<p><strong>Calculated Multiple:</strong> ${multiplier}</p><p><strong>Estimated Dynamic Range:</strong> ${dynamicRange} Stops</p>`;
+
+            document.getElementById('result').innerHTML = resultHtml;
+
+            // Clear any existing grayscale box before appending the new one
+            const grayscaleBox = document.getElementById('grayscaleBox');
+            grayscaleBox.innerHTML = '';
+
+            // Create the grayscale gradient inside the box
+            for (let i = 0; i < totalSteps; i++) {
+                const grayValue = (i / (totalSteps - 1)) * 100; // 0 to 100%
+                const stepDiv = document.createElement('div');
+                stepDiv.style.height = `${100 / totalSteps}%`; // Evenly distribute steps
+                stepDiv.style.backgroundColor = `rgb(${grayValue}%, ${grayValue}%, ${grayValue}%)`;
+                grayscaleBox.appendChild(stepDiv);
+            }
+        }
+    </script>
+</body>
+</html>
